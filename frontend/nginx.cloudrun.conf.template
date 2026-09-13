@@ -1,0 +1,44 @@
+# Cloud Run nginx config template. The official nginx image runs envsubst over
+# /etc/nginx/templates/*.template at startup; only PORT and BACKEND_HOST are
+# substituted (NGINX_ENVSUBST_FILTER), so nginx's own $variables are preserved.
+#
+#   PORT          - injected by Cloud Run (default 8080)
+#   BACKEND_HOST  - the backend Cloud Run host, no scheme, e.g.
+#                   studyforge-backend-xxxxx-uc.a.run.app
+server {
+    listen ${PORT};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Match the backend's MAX_UPLOAD_MB (25) plus headroom for PDF uploads.
+    client_max_body_size 30m;
+
+    # Public DNS so the run.app host is re-resolved at request time (its IP can
+    # change) — required when proxy_pass uses a variable.
+    resolver 8.8.8.8 8.8.4.4 valid=30s;
+
+    # Same-origin API: the browser calls /api on this service; nginx proxies it
+    # server-side to the backend Cloud Run service (so no CORS in the browser).
+    location /api/ {
+        set $backend "${BACKEND_HOST}";
+        proxy_pass https://$backend;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $backend;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+
+        # SSE (live notes streaming): no buffering, long read timeout.
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+
+    # SPA fallback.
+    location / {
+        try_files $uri /index.html;
+    }
+}
