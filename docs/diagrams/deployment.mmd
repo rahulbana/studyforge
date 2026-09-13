@@ -1,0 +1,25 @@
+flowchart TB
+  subgraph Local["Local dev — ./start.sh"]
+    L1["uvicorn :8000"]
+    L2["Vite dev :5173 (proxies /api)"]
+  end
+
+  subgraph Compose["Docker Compose"]
+    C1["frontend nginx :8080"]
+    C2["backend :8000"]
+    C3[("postgres :5432<br/>profile: postgres")]
+    C4["prometheus :9090 + grafana :3000<br/>profile: monitoring"]
+    C1 --> C2
+    C2 -.-> C3
+    C4 -.-> C2
+  end
+
+  subgraph Cloud["Google Cloud Run (deploy/cloudrun)"]
+    R1["studyforge-frontend (nginx)"]
+    R2["studyforge-backend (FastAPI)"]
+    R3["Secret Manager (OPENAI_API_KEY)"]
+    R4[("Cloud SQL Postgres<br/>(optional, durable)")]
+    R1 -->|"/api over HTTPS"| R2
+    R2 --> R3
+    R2 -.-> R4
+  end

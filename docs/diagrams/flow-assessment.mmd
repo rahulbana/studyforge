@@ -1,0 +1,23 @@
+sequenceDiagram
+  actor U as Student
+  participant FE as React SPA
+  participant API as FastAPI
+  participant BG as BackgroundTask
+  participant AI as OpenAI
+  participant DB as Database
+
+  U->>FE: Pick chapter or topic plus question mix
+  FE->>API: POST /api/assessments
+  API->>DB: create Assessment, status generating
+  API-->>FE: 202 AssessmentDetail
+  API->>BG: schedule run_generation
+  BG->>AI: generate test questions
+  BG->>DB: status ready
+  FE->>API: poll GET /api/assessments/:id until ready
+  U->>FE: Answer and submit
+  FE->>API: POST /api/assessments/:id/submit
+  API->>DB: status grading
+  API->>BG: schedule run_grading
+  BG->>AI: grade written answers, objective graded exactly
+  BG->>DB: score plus per-concept feedback, status graded
+  FE->>API: GET /api/assessments/progress

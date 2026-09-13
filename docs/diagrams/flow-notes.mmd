@@ -1,0 +1,22 @@
+sequenceDiagram
+  actor U as Student
+  participant FE as React SPA
+  participant API as FastAPI
+  participant ST as NotesStream
+  participant AI as OpenAI
+  participant DB as Database
+
+  U->>FE: Upload PDF plus class/subject/chapter
+  FE->>API: POST /api/chapters
+  API->>API: validate PDF, OCR if scanned
+  API->>DB: create Chapter, status pending
+  API-->>FE: 200 ChapterDetail
+  FE->>API: GET /api/chapters/:id/notes/stream
+  API->>ST: start or attach stream thread
+  ST->>AI: web-grounded notes, streamed
+  AI-->>ST: token deltas
+  ST-->>FE: SSE chunk events, live notes
+  ST->>AI: diagram pass for SVG figures
+  ST->>DB: save notes, sources, status ready
+  ST-->>FE: SSE done
+  FE->>API: GET /api/chapters/:id for final notes

@@ -1,0 +1,55 @@
+flowchart TB
+  subgraph Client["Browser — React SPA (Vite + Chakra UI)"]
+    UI["features/ (chapters, questions, assess)"]
+    Hooks["hooks/ (data, polling, SSE state)"]
+    APIc["lib/apiClient (axios)"]
+    UI --> Hooks --> APIc
+  end
+
+  subgraph Edge["nginx (Docker / Cloud Run frontend)"]
+    NGINX["serve built SPA<br/>reverse-proxy /api (+ SSE)"]
+  end
+
+  subgraph Backend["FastAPI backend — app/"]
+    Routes["api/routes (thin controllers)"]
+    Services["services (orchestration)"]
+    Repos["repositories (DB access)"]
+    Agents["agents (llm.py, prompts.py)"]
+    Models["models (SQLAlchemy)"]
+    Core["core (config, logging, metrics, exceptions)"]
+    DBmod["db (session, migrate, doctor)"]
+    Routes --> Services
+    Services --> Repos
+    Services --> Agents
+    Repos --> Models
+    Agents --> Models
+    Routes -. errors/metrics .-> Core
+    Services -. usage/logging .-> Core
+  end
+
+  subgraph Async["Async work (never blocks a request)"]
+    BG["BackgroundTasks<br/>questions, assessments, notes"]
+    SSE["NotesStream registry<br/>SSE streaming thread"]
+  end
+
+  DB[("Database<br/>SQLite (default) or Postgres")]
+  OpenAI["OpenAI API<br/>chat + web_search tool"]
+
+  subgraph Obs["Observability (optional profile)"]
+    Metrics["GET /metrics (Prometheus text)"]
+    Prom["Prometheus"]
+    Graf["Grafana dashboard"]
+    Metrics --> Prom --> Graf
+  end
+
+  APIc -->|HTTPS| NGINX
+  NGINX -->|"/api/*"| Routes
+  NGINX -->|"/api/chapters/:id/notes/stream"| SSE
+  Services --> BG
+  Services --> SSE
+  BG --> Agents
+  SSE --> Agents
+  Agents -->|HTTPS| OpenAI
+  Repos --> DB
+  DBmod --> DB
+  Core --> Metrics

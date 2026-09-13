@@ -1,0 +1,21 @@
+sequenceDiagram
+  actor U as Student
+  participant FE as React SPA
+  participant API as FastAPI
+  participant BG as BackgroundTask
+  participant AI as OpenAI
+  participant DB as Database
+
+  U->>FE: Choose question types and counts
+  FE->>API: POST /api/chapters/:id/questions/generate
+  API->>DB: create GenerationJob, status pending
+  API-->>FE: 202 with job_id
+  API->>BG: schedule run_generation_job
+  BG->>AI: generate per type
+  BG->>AI: verify answers, batched
+  BG->>DB: save questions, job done
+  loop poll until settled
+    FE->>API: GET /api/generation-jobs/:job_id
+    API-->>FE: status
+  end
+  FE->>API: GET /api/chapters/:id/questions

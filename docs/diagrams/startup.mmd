@@ -1,0 +1,12 @@
+flowchart TB
+  Start["start.sh / container start"] --> Doctor["app.db.doctor (preflight)"]
+  Doctor --> Ensure["ensure_database()<br/>wait for server; CREATE DATABASE if missing (Postgres)"]
+  Ensure --> Mig["run_migrations() — Alembic"]
+  Mig --> Fresh{"DB state?"}
+  Fresh -->|fresh| Up["upgrade head (create schema)"]
+  Fresh -->|"pre-Alembic (tables, no version)"| Stamp["stamp baseline, then upgrade"]
+  Fresh -->|managed| Up2["upgrade head"]
+  Up --> Verify["verify expected tables"]
+  Stamp --> Verify
+  Up2 --> Verify
+  Verify --> Launch["launch uvicorn + SPA"]

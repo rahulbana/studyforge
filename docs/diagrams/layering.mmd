@@ -1,0 +1,6 @@
+flowchart LR
+  R["api/routes<br/>validate + return schema"] --> S["services<br/>multi-step logic"]
+  S --> RE["repositories<br/>get/list/add/save"]
+  S --> AG["agents<br/>OpenAI calls"]
+  RE --> M["models (ORM)"]
+  AG --> M
