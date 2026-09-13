@@ -1,0 +1,90 @@
+# One-command run:  docker compose up --build
+# Then open http://localhost:8080
+#
+# Prereq (once):  cp backend/.env.example backend/.env  and add your OPENAI_API_KEY.
+#
+# Optional monitoring stack (Prometheus + Grafana wired to the backend /metrics):
+#   docker compose --profile monitoring up --build
+#   Grafana:    http://localhost:3000  (anonymous, "StudyForge" dashboard)
+#   Prometheus: http://localhost:9090
+#
+# Optional Postgres (instead of the default SQLite): set DATABASE_URL in
+# backend/.env to postgresql+psycopg://studyforge:studyforge@postgres:5432/studyforge
+# then:  docker compose --profile postgres up --build
+
+services:
+  backend:
+    build: ./backend
+    # DATABASE_URL comes from backend/.env — SQLite by default, or a Postgres URL
+    # to use the postgres service below.
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/data:/app/data   # persists the SQLite file (unused with Postgres)
+    ports:
+      - "8000:8000"   # optional: direct API access + /docs
+    restart: unless-stopped
+
+  # --- Optional Postgres (profile: postgres) ------------------------------
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: studyforge
+      POSTGRES_PASSWORD: studyforge
+      POSTGRES_DB: studyforge
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"   # optional: connect with a local DB client
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studyforge"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  # --- Optional monitoring stack (profile: monitoring) --------------------
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["monitoring"]
+    depends_on:
+      - backend
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    profiles: ["monitoring"]
+    depends_on:
+      - prometheus
+    environment:
+      # Anonymous access so the dashboards open with no login for local use.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+      GF_USERS_DEFAULT_THEME: "light"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  pg-data:
