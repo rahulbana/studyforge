@@ -161,6 +161,10 @@ SQLite (the postgres service is gated behind the profile).
 
 ## Architecture
 
+📐 **Diagrams:** see [`docs/architecture.md`](docs/architecture.md) — system overview,
+request layering, the notes/questions/assessment flows, startup/migrations, and
+deployment (rendered on GitHub).
+
 The backend follows a clean, layered design (request → route → service →
 repository/agent → model), so HTTP concerns, business logic, data access and
 LLM calls stay decoupled and independently testable.
