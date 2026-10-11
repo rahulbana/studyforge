@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -219,3 +219,8 @@ __marimo__/
 node_modules/
 frontend/node_modules/
 package-lock.json
+
+
+# Local SQLite database and Vite cache
+backend/data/*.db
+frontend/.vite/

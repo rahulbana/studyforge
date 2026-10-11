@@ -22,6 +22,25 @@ Upload a chapter PDF → tell it the class, subject and chapter name → the age
    **export** notes and questions to **PDF** or **Word (DOCX)** — including a
    **worksheet** layout (questions only, then a separate **answer key**) for paper practice.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Study mode, empty state](screenshots/01-study-empty.jpg) | ![Notes](screenshots/03-notes-top.jpg) |
+| **Study mode** — chapter list and upload | **Notes** — researched, exam-ready notes |
+| ![Notes table](screenshots/04-notes-table.jpg) | ![Mermaid diagram](screenshots/05-notes-mermaid-layers.jpg) |
+| **Tables** for quick reference | **Diagrams** rendered inline (Mermaid) |
+| ![Monsoon flowchart](screenshots/06-notes-mermaid-monsoon.jpg) | ![Questions tab](screenshots/07-questions-tab.jpg) |
+| **Flowcharts** for processes | **Questions** — pick types, counts and difficulty |
+| ![Question card](screenshots/10-question-answer-expanded.jpg) | ![Sources](screenshots/11-sources-tab.jpg) |
+| **Question bank** with answers and verification | **Sources** the notes agent consulted |
+| ![Export menu](screenshots/12-export-menu.jpg) | ![Upload modal](screenshots/13-upload-modal.jpg) |
+| **Export** to PDF / Word / worksheet | **Upload** a chapter PDF |
+| ![New test](screenshots/14-evaluate-new-test-topic.jpg) | ![Progress](screenshots/16-evaluate-progress-empty.jpg) |
+| **Evaluate** — build a test by topic or chapter | **Progress** dashboard |
+| ![Dark mode](screenshots/17-study-dark-mode.jpg) | |
+| **Dark mode** | |
+
 ## Two modes: Study & Evaluate
 
 Toggle in the header:
